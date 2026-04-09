@@ -1,3 +1,4 @@
+
 import { View, Text, TextInput, Pressable, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Link, useRouter, type Href } from 'expo-router';
 import { useSignUp, useAuth } from '@clerk/expo';
@@ -59,7 +60,13 @@ const SignUp = () => {
 
                     const url = decorateUrl('/(tabs)');
                     if (url.startsWith('http')) {
-                        window.location.href = url;
+                        // Only use window.location on web platform
+                        if (typeof window !== 'undefined' && window.location) {
+                            window.location.href = url;
+                        } else {
+                            // On native, just use router navigation
+                            router.replace('/(tabs)' as Href);
+                        }
                     } else {
                         router.replace(url as Href);
                     }
@@ -97,10 +104,10 @@ const SignUp = () => {
                             <View className="auth-brand-block">
                                 <View className="auth-logo-wrap">
                                     <View className="auth-logo-mark">
-                                        <Text className="auth-logo-mark-text">R</Text>
+                                        <Text className="auth-logo-mark-text">B</Text>
                                     </View>
                                     <View>
-                                        <Text className="auth-wordmark">Recurrly</Text>
+                                        <Text className="auth-wordmark">Billora</Text>
                                         <Text className="auth-wordmark-sub">SUBSCRIPTIONS</Text>
                                     </View>
                                 </View>
@@ -173,10 +180,10 @@ const SignUp = () => {
                         <View className="auth-brand-block">
                             <View className="auth-logo-wrap">
                                 <View className="auth-logo-mark">
-                                    <Text className="auth-logo-mark-text">R</Text>
+                                    <Text className="auth-logo-mark-text">B</Text>
                                 </View>
                                 <View>
-                                    <Text className="auth-wordmark">Recurrly</Text>
+                                    <Text className="auth-wordmark">Billora</Text>
                                     <Text className="auth-wordmark-sub">SUBSCRIPTIONS</Text>
                                 </View>
                             </View>

@@ -21,7 +21,7 @@ const SignIn = () => {
 
     // Client-side validation
     const emailValid = emailAddress.length === 0 || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailAddress);
-    const passwordValid = password.length === 0 || password.length > 0;
+    const passwordValid = password.length > 0;
     const formValid = emailAddress.length > 0 && password.length > 0 && emailValid;
 
     const handleSubmit = async () => {
@@ -47,7 +47,13 @@ const SignIn = () => {
 
                     const url = decorateUrl('/(tabs)');
                     if (url.startsWith('http')) {
-                        window.location.href = url;
+                        // Only use window.location on web platform
+                        if (typeof window !== 'undefined' && window.location) {
+                            window.location.href = url;
+                        } else {
+                            // On native, just use router navigation
+                            router.replace('/(tabs)' as Href);
+                        }
                     } else {
                         router.replace(url as Href);
                     }
@@ -83,7 +89,13 @@ const SignIn = () => {
 
                     const url = decorateUrl('/(tabs)');
                     if (url.startsWith('http')) {
-                        window.location.href = url;
+                        // Only use window.location on web platform
+                        if (typeof window !== 'undefined' && window.location) {
+                            window.location.href = url;
+                        } else {
+                            // On native, just use router navigation
+                            router.replace('/(tabs)' as Href);
+                        }
                     } else {
                         router.replace(url as Href);
                     }
