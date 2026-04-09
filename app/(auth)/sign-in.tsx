@@ -4,12 +4,14 @@ import { useSignIn } from '@clerk/expo';
 import { useState } from 'react';
 import { SafeAreaView as RNSafeAreaView } from 'react-native-safe-area-context';
 import { styled } from 'nativewind';
+import { usePostHog } from 'posthog-react-native';
 
 const SafeAreaView = styled(RNSafeAreaView);
 
 const SignIn = () => {
     const { signIn, errors, fetchStatus } = useSignIn();
     const router = useRouter();
+    const posthog = usePostHog();
 
     const [emailAddress, setEmailAddress] = useState('');
     const [password, setPassword] = useState('');
@@ -34,10 +36,19 @@ const SignIn = () => {
 
         if (error) {
             console.error(JSON.stringify(error, null, 2));
+            posthog.capture('user_sign_in_failed', {
+                error_code: error.code,
+                error_message: error.message,
+            });
             return;
         }
 
         if (signIn.status === 'complete') {
+            posthog.identify(emailAddress, {
+                $set: { email: emailAddress },
+                $set_once: { first_login_date: new Date().toISOString() },
+            });
+            posthog.capture('user_signed_in', { email: emailAddress });
             await signIn.finalize({
                 navigate: ({ session, decorateUrl }) => {
                     if (session?.currentTask) {
@@ -45,18 +56,20 @@ const SignIn = () => {
                         return;
                     }
 
-                    const url = decorateUrl('/(tabs)');
-                    if (url.startsWith('http')) {
-                        // Only use window.location on web platform
-                        if (typeof window !== 'undefined' && window.location) {
-                            window.location.href = url;
-                        } else {
-                            // On native, just use router navigation
-                            router.replace('/(tabs)' as Href);
-                        }
-                    } else {
-                        router.replace(url as Href);
-                    }
+                    router.replace('/(tabs)');
+
+                    // const url = decorateUrl('/(tabs)');
+                    // if (url.startsWith('http')) {
+                    //     // Only use window.location on web platform
+                    //     if (typeof window !== 'undefined' && window.location) {
+                    //         window.location.href = url;
+                    //     } else {
+                    //         // On native, just use router navigation
+                    //         router.replace('/(tabs)' as Href);
+                    //     }
+                    // } else {
+                    //     router.replace(url as Href);
+                    // }
                 },
             });
         } else if (signIn.status === 'needs_second_factor') {
@@ -87,18 +100,20 @@ const SignIn = () => {
                         return;
                     }
 
-                    const url = decorateUrl('/(tabs)');
-                    if (url.startsWith('http')) {
-                        // Only use window.location on web platform
-                        if (typeof window !== 'undefined' && window.location) {
-                            window.location.href = url;
-                        } else {
-                            // On native, just use router navigation
-                            router.replace('/(tabs)' as Href);
-                        }
-                    } else {
-                        router.replace(url as Href);
-                    }
+                    router.replace('/(tabs)');
+                    
+                    // const url = decorateUrl('/(tabs)');
+                    // if (url.startsWith('http')) {
+                    //     // Only use window.location on web platform
+                    //     if (typeof window !== 'undefined' && window.location) {
+                    //         window.location.href = url;
+                    //     } else {
+                    //         // On native, just use router navigation
+                    //         router.replace('/(tabs)' as Href);
+                    //     }
+                    // } else {
+                    //     router.replace(url as Href);
+                    // }
                 },
             });
         } else {
